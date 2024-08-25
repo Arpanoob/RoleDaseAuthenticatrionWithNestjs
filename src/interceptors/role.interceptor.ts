@@ -50,7 +50,7 @@ export class RoleInterceptor implements NestInterceptor {
       currUserRole === Roles.Lead &&
       [Roles.EMPLOYEE].some((exRole) => exRole === newUserRole)
     ) {
-      //console.log(reqBody.role, 'kl');
+      console.log(reqBody.role, 'kl');
 
       return next.handle();
     }

@@ -87,13 +87,16 @@ export class UserService {
     userId: string,
     salary: string,
     ApprovalId: string,
+    manager: any,
   ) {
-    console.log('kkkkkl');
+    console.log('kkkdffwefkkl', manager);
 
     const approval = await this.approvalModel.findOne({ _id: ApprovalId });
     if (approval) {
       approval.salary = salary;
       approval.approveByLead = true;
+      approval.manager = manager;
+
       await approval.save();
       return;
     }
@@ -102,6 +105,7 @@ export class UserService {
     const approveByLead = await new this.approvalModel({
       approveByLead: true,
       salary,
+      manager,
     });
 
     await approveByLead.save();
@@ -119,6 +123,7 @@ export class UserService {
     salary: string,
     ApprovalId: string,
   ) {
+    console.log('opop');
     const approval = await this.approvalModel.findOne({ _id: ApprovalId });
     if (approval) {
       approval.salary = salary;
@@ -181,27 +186,82 @@ export class UserService {
       AllAprovals = await this.approvalModel.find({
         approveByLead: true,
       });
+    // .select('_id');
 
     if (role === Roles.ADMIN)
-      AllAprovals = await this.approvalModel
-        .find({
-          approveByManager: true,
-        })
-        .select('_id');
+      AllAprovals = await this.approvalModel.find({
+        approveByManager: true,
+      });
+    //    .select('_id');
+    const higher = AllAprovals.map((approval) => approval.manager);
+    console.log('AllAprovals', AllAprovals);
 
-    AllAprovals = AllAprovals.map((approval) => approval._id.toString());
+    AllAprovals = AllAprovals.map((approval) => approval._id);
 
     console.log('AllAprovals', AllAprovals);
+    console.log('higher', higher);
+
     const [users, count] = await Promise.all([
-      this.userModel
-        .find({
-          Approvals: { $in: AllAprovals },
-          rm: id,
-        })
-        .populate('Approvals')
-        .limit(limit)
-        .skip((page - 1) * limit)
-        .sort({ createdAt: -1 }),
+      this.userModel.aggregate([
+        // Step 1: Match documents based on Approvals
+        {
+          $match: {
+            Approvals: { $in: AllAprovals },
+          },
+        },
+        // Step 2: Lookup to join Approvals details
+        {
+          $lookup: {
+            from: 'approvals', // Collection name where Approval documents are stored
+            localField: 'Approvals',
+            foreignField: '_id',
+            as: 'ApprovalsDetails',
+          },
+        },
+        // Step 3: Unwind ApprovalsDetails to flatten the array
+        {
+          $unwind: '$ApprovalsDetails',
+        },
+        // Step 4: Match documents based on manager field in ApprovalsDetails
+        {
+          $match: {
+            'ApprovalsDetails.manager': { $in: higher },
+          },
+        },
+        // Step 5: Replace Approvals with ApprovalsDetails and remove ApprovalsDetails field
+        {
+          $addFields: {
+            Approvals: '$ApprovalsDetails',
+          },
+        },
+        {
+          $project: {
+            ApprovalsDetails: 0, // Exclude ApprovalsDetails from the output
+          },
+        },
+        // Step 6: Group documents by their original _id to reassemble them
+        {
+          $group: {
+            _id: '$_id',
+            document: { $first: '$$ROOT' },
+          },
+        },
+        // Step 7: Replace root with the updated document
+        {
+          $replaceRoot: { newRoot: '$document' },
+        },
+        // Step 8: Apply pagination
+        {
+          $limit: +limit,
+        },
+        {
+          $skip: (page - 1) * limit,
+        },
+        // Step 9: Sort results by createdAt
+        {
+          $sort: { createdAt: -1 },
+        },
+      ]),
       this.userModel.countDocuments({
         Approval: { $in: AllAprovals },
       }),

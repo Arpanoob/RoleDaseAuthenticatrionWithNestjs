@@ -110,12 +110,14 @@ export class UserController {
     @Body('salary') salary: string,
     @Body('userId') userId: string,
   ) {
-    console.log('kl');
+    console.log('klop',salary);
 
     const isExist = await this.userService.findUserById(userId);
     if (!isExist) throw new BadRequestException();
 
     const user = req.user as { _id: string; role: string; email: string };
+    const CurrUSer = await this.userService.findUserById(user._id);
+
     if (user.role === Roles.ADMIN) {
       await this.userService.finalyUpdateSalary(
         userId,
@@ -130,13 +132,15 @@ export class UserController {
         isExist.Approvals as unknown as string,
       );
     }
-    console.log('Roles', user.role);
+    console.log('Roles..', user.role);
 
     if (user.role === Roles.Lead) {
+      console.log("lo..")
       await this.userService.UpdateApprovalForLeadAndWaitForManager(
         userId,
         salary,
         isExist.Approvals as unknown as string,
+        CurrUSer.rm,
       );
     }
     return {
