@@ -10,7 +10,10 @@ async function bootstrap() {
 
   // Correct CORS configuration
   app.enableCors({
-    origin: 'http://localhost:3000', // Allow requests from your frontend's origin
+    origin: [
+      'http://localhost:3000',
+      'https://role-base-authentication-front-end-with-next-js.vercel.app',
+    ], // Allow requests from your frontend's origin
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   });
 

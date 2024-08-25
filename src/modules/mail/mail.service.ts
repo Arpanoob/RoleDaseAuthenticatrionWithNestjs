@@ -25,7 +25,7 @@ export class MailService {
           templatePath,
           {
             user_firstname: name,
-            confirm_link: `http://localhost:3000/invite-user?token=${token}`,
+            confirm_link: `https://role-base-authentication-front-end-with-next-js.vercel.app/login/invite-user?token=${token}`,
           },
           (error, data) => (error ? reject(error) : resolve(data)),
         );
