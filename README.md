@@ -26,6 +26,23 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## To clone then repo
+
+```bash
+$ git clone https://github.com/Arpanoob/RoleDaseAuthenticatrionWithNestjs
+```
+
+## Add.env file
+
+for MONGODB_URI,MONGODB_URI_PROD,JWT_SECRET,EMAIL_USERNAME,
+EMAIL_PASSWORD,
+SALT ,
+OTP_RELAXATION_TIME,
+NODE_ENV,
+ADMIN_EMAIL,
+ADMIN_USERNAME,
+ADMIN_PASSWORD.
+
 ## Installation
 
 ```bash

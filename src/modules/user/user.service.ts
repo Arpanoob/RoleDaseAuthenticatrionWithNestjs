@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './entities/user.entity';
@@ -8,13 +8,34 @@ import { Roles } from 'src/enum/roles.enum';
 import { Approval } from './entities/approval.enity';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @InjectModel(Approval.name) private approvalModel: Model<Approval>,
   ) {}
+  async onModuleInit() {
+    const isAdminExist = await this.userModel.findOne({ role: Roles.ADMIN });
+    //  console.log('is Exist ', isAdminExist);
+    if (!isAdminExist) {
+      // console.log(
+      //   process.env.ADMIN_EMAIL,
+      //   process.env.ADMIN_USERNAME,
+      //   process.env.ADMIN_PASSWORD,
+      // );
+      const Admin = new this.userModel({
+        email: process.env.ADMIN_EMAIL,
+        username: process.env.ADMIN_USERNAME,
+        password: process.env.ADMIN_PASSWORD,
+        role: Roles.ADMIN,
+        isActive: false,
+      });
+      Admin.save();
+      // console.log('Admin:', Admin);
+    }
+  }
 
   async create(createUserDto: CreateUserDto, rm: string) {
+    console.log();
     console.log(createUserDto);
     if (!createUserDto.rm) createUserDto.rm = rm;
     const user = await new this.userModel(createUserDto);

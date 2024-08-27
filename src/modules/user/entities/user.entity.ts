@@ -34,15 +34,16 @@ export class User extends Document {
   @Prop({ type: Boolean, default: false, required: true })
   isActive: boolean;
 
-  @Prop({ type: String })
+  @Prop({ type: String, required: false })
   salary: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: false })
   rm: MongooseSchema.Types.ObjectId | User;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Approval',
+    required: false,
   })
   Approvals: MongooseSchema.Types.ObjectId | Approval;
 }
